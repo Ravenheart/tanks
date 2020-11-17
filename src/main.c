@@ -10,10 +10,8 @@
 
 typedef struct
 {
-    fix16 x;
-    fix16 y;
-    fix16 vel_x;
-    fix16 vel_y;
+    Vect2D_f16 pos;
+    Vect2D_f16 vel;
     int width;
     int height;
 
@@ -43,15 +41,15 @@ int main()
 
     tank.height = 16;
     tank.width = 16;
-    tank.x = intToFix16((RIGHT_EDGE / 2) - (tank.width / 2));
-    tank.y = intToFix16((BOTTOM_EDGE / 2) - (tank.height / 2));
-    tank.vel_x = FIX16(0);
-    tank.vel_y = FIX16(0);
+    tank.pos.x = intToFix16((RIGHT_EDGE / 2) - (tank.width / 2));
+    tank.pos.y = intToFix16((BOTTOM_EDGE / 2) - (tank.height / 2));
+    tank.vel.x = FIX16(0);
+    tank.vel.y = FIX16(0);
     tank.turret_rotation = 0;
 
-    tank.turret = SPR_addSprite(&tank_turret_90, fix16ToInt(tank.x), fix16ToInt(tank.y), TILE_ATTR(PAL1, 0, FALSE, FALSE));
-    tank._body90 = SPR_addSprite(&tank_body_90, fix16ToInt(tank.x), fix16ToInt(tank.y), TILE_ATTR(PAL1, 0, FALSE, FALSE));
-    tank._body0 = SPR_addSprite(&tank_body_0, fix16ToInt(tank.x), fix16ToInt(tank.y), TILE_ATTR(PAL1, 0, FALSE, FALSE));
+    tank.turret = SPR_addSprite(&tank_turret_90, fix16ToInt(tank.pos.x), fix16ToInt(tank.pos.y), TILE_ATTR(PAL1, 0, FALSE, FALSE));
+    tank._body90 = SPR_addSprite(&tank_body_90, fix16ToInt(tank.pos.x), fix16ToInt(tank.pos.y), TILE_ATTR(PAL1, 0, FALSE, FALSE));
+    tank._body0 = SPR_addSprite(&tank_body_0, fix16ToInt(tank.pos.x), fix16ToInt(tank.pos.y), TILE_ATTR(PAL1, 0, FALSE, FALSE));
     SPR_setVisibility(tank._body0, HIDDEN);
 
     SPR_update();
@@ -71,80 +69,80 @@ void updateTank()
     u16 state = JOY_readJoypad(JOY_1);
     if (state & BUTTON_UP)
     {
-        tank.vel_y = fix16Neg(SPEED);
+        tank.vel.y = fix16Neg(FIX16(SPEED));
     }
     else if (state & BUTTON_DOWN)
     {
-        tank.vel_y = FIX16(SPEED);
+        tank.vel.y = FIX16(SPEED);
     }
     else
     {
-        tank.vel_y = FIX16(0);
+        tank.vel.y = FIX16(0);
     }
 
     if (state & BUTTON_LEFT)
     {
-        tank.vel_x = fix16Neg(SPEED);
+        tank.vel.x = fix16Neg(FIX16(SPEED));
     }
     else if (state & BUTTON_RIGHT)
     {
-        tank.vel_x = FIX16(SPEED);
+        tank.vel.x = FIX16(SPEED);
     }
     else
     {
-        tank.vel_x = FIX16(0);
+        tank.vel.x = FIX16(0);
     }
 
-    tank.x = fix16Add(tank.x, tank.vel_x);
-    tank.y = fix16Add(tank.y, tank.vel_y);
-    if (fix16ToInt(tank.x) + tank.width > RIGHT_EDGE)
+    tank.pos.x = fix16Add(tank.pos.x, tank.vel.x);
+    tank.pos.y = fix16Add(tank.pos.y, tank.vel.y);
+    if (fix16ToInt(tank.pos.x) + tank.width > RIGHT_EDGE)
     {
-        tank.x = intToFix16(RIGHT_EDGE - tank.width);
+        tank.pos.x = intToFix16(RIGHT_EDGE - tank.width);
     }
-    else if (fix16ToInt(tank.x) < LEFT_EDGE)
+    else if (fix16ToInt(tank.pos.x) < LEFT_EDGE)
     {
-        tank.x = FIX16(LEFT_EDGE);
-    }
-
-    if (fix16ToInt(tank.y) + tank.height > BOTTOM_EDGE)
-    {
-        tank.y = intToFix16(BOTTOM_EDGE - tank.height);
-    }
-    else if (fix16ToInt(tank.y) < TOP_EDGE)
-    {
-        tank.y = FIX16(TOP_EDGE);
+        tank.pos.x = FIX16(LEFT_EDGE);
     }
 
-    if (fix16ToInt(tank.vel_x) > 0)
+    if (fix16ToInt(tank.pos.y) + tank.height > BOTTOM_EDGE)
     {
-        SPR_setPosition(tank._body0, fix16ToInt(tank.x), fix16ToInt(tank.y));
+        tank.pos.y = intToFix16(BOTTOM_EDGE - tank.height);
+    }
+    else if (fix16ToInt(tank.pos.y) < TOP_EDGE)
+    {
+        tank.pos.y = FIX16(TOP_EDGE);
+    }
+
+    if (fix16ToInt(tank.vel.x) > 0)
+    {
+        SPR_setPosition(tank._body0, fix16ToInt(tank.pos.x), fix16ToInt(tank.pos.y));
         SPR_setHFlip(tank._body0, FALSE);
         SPR_setVisibility(tank._body0, VISIBLE);
         SPR_setVisibility(tank._body90, HIDDEN);
     }
-    else if (fix16ToInt(tank.vel_x) < 0)
+    else if (fix16ToInt(tank.vel.x) < 0)
     {
-        SPR_setPosition(tank._body0, fix16ToInt(tank.x), fix16ToInt(tank.y));
+        SPR_setPosition(tank._body0, fix16ToInt(tank.pos.x), fix16ToInt(tank.pos.y));
         SPR_setHFlip(tank._body0, TRUE);
         SPR_setVisibility(tank._body0, VISIBLE);
         SPR_setVisibility(tank._body90, HIDDEN);
     }
-    else if (fix16ToInt(tank.vel_y) > 0)
+    else if (fix16ToInt(tank.vel.y) > 0)
     {
-        SPR_setPosition(tank._body90, fix16ToInt(tank.x), fix16ToInt(tank.y));
+        SPR_setPosition(tank._body90, fix16ToInt(tank.pos.x), fix16ToInt(tank.pos.y));
         SPR_setVFlip(tank._body90, TRUE);
         SPR_setVisibility(tank._body0, HIDDEN);
         SPR_setVisibility(tank._body90, VISIBLE);
     }
-    else if (fix16ToInt(tank.vel_y) < 0)
+    else if (fix16ToInt(tank.vel.y) < 0)
     {
-        SPR_setPosition(tank._body90, fix16ToInt(tank.x), fix16ToInt(tank.y));
+        SPR_setPosition(tank._body90, fix16ToInt(tank.pos.x), fix16ToInt(tank.pos.y));
         SPR_setVFlip(tank._body90, FALSE);
         SPR_setVisibility(tank._body0, HIDDEN);
         SPR_setVisibility(tank._body90, VISIBLE);
     }
 
-    SPR_setPosition(tank.turret, fix16ToInt(tank.x), fix16ToInt(tank.y));
+    SPR_setPosition(tank.turret, fix16ToInt(tank.pos.x), fix16ToInt(tank.pos.y));
 }
 
 void drawBackground()
